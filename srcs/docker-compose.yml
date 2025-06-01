@@ -71,19 +71,19 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/srandria/data/sqlserver
+      device: /home/${USER_NAME}/data/sqlserver
       o: bind
   portainer_data:
     name: portainer_data
     driver: local
     driver_opts:
       type: none
-      device: /home/srandria/data/portainer
+      device: /home/${USER_NAME}/data/portainer
       o: bind
   dbeaver_data:
     name: dbeaver_data
     driver: local
     driver_opts:
       type: none
-      device: /home/srandria/data/dbeaver
+      device: /home/${USER_NAME}/data/dbeaver
       o: bind

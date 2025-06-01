@@ -1,12 +1,20 @@
 NAME = sqlserver
 COMPOSE_FILE = srcs/docker-compose.yml
-DATA_DIR = /home/srandria/data/sqlserver
-PORTAINER_DIR = /home/srandria/data/portainer
-DBEAVER_DIR = /home/srandria/data/dbeaver
+USER := $(shell whoami)
+DATA_DIR = /home/$(USER)/data/sqlserver
+PORTAINER_DIR = /home/$(USER)/data/portainer
+DBEAVER_DIR = /home/$(USER)/data/dbeaver
+ENV_PATH = ./srcs/.env
 
 all: init build up
 
 init:
+	@USER_NAME=$$(whoami); \
+	if grep -q "^USER_NAME=" $(ENV_PATH) 2>/dev/null; then \
+		sed -i "s/^USER_NAME=.*/USER_NAME=$$USER_NAME/" $(ENV_PATH); \
+	else \
+		echo "USER_NAME=$$USER_NAME" >> $(ENV_PATH); \
+	fi
 	@if [ ! -d $(DATA_DIR) ]; then \
 		mkdir -p $(DATA_DIR); \
 		chmod 777 $(DATA_DIR); \
