@@ -5,28 +5,85 @@ services:
     build:
       context: ./requirements/sqlserver
       dockerfile: Dockerfile
-    image: sqlserver-image
+    image: sqlserver
     container_name: sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_SA_PASSWORD_FILE=/run/secrets/mssql_sa_password.txt
+      - MSSQL_APP_LOGIN=${MSSQL_APP_LOGIN}
+      - MSSQL_DEV_LOGIN=${MSSQL_DEV_LOGIN}
+      - MSSQL_APP_PASSWORD_FILE=/run/secrets/mssql_app_password.txt
+      - MSSQL_DEV_PASSWORD_FILE=/run/secrets/mssql_dev_password.txt
+      - DBEAVER_ADMIN_USER=${DBEAVER_ADMIN_USER}
+      - DBEAVER_ADMIN_PASSWORD_FILE=/run/secrets/dbeaver_admin_password.txt
       - MSSQL_PID=Developer
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+      - ../secrets/mssql_sa_password.txt:/run/secrets/mssql_sa_password.txt
+      - ../secrets/mssql_app_password.txt:/run/secrets/mssql_app_password.txt
+      - ../secrets/mssql_dev_password.txt:/run/secrets/mssql_dev_password.txt
+      - ../secrets/dbeaver_admin_password.txt:/run/secrets/dbeaver_admin_password.txt
+
     restart: unless-stopped
     networks:
       - sqlserver-net
-
-volumes:
-  sqlserver_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/srandria/data/sqlserver_data
-      o: bind
+  portainer:
+    build:
+      context: ./requirements/portainer
+      dockerfile: Dockerfile
+    image: portainer
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - sqlserver-net
+    ports:
+      - "9000:9000"
+  dbeaver:
+    image: dbeaver/cloudbeaver:23.3.0
+    container_name: dbeaver
+    ports:
+      - 8978:8978
+    networks:
+      - sqlserver-net
+    environment:
+      - CB_SERVER_NAME=DBeaver Web
+    restart: unless-stopped
+    volumes:
+      - dbeaver_data:/opt/cloudbeaver/workspace
+    depends_on:
+      - sqlserver
+    links:
+      - sqlserver
 
 networks:
   sqlserver-net:
+    name: sqlserver_net
     driver: bridge
+
+volumes:
+  sqlserver_data:
+    name: sqlserver_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/srandria/data/sqlserver
+      o: bind
+  portainer_data:
+    name: portainer_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/srandria/data/portainer
+      o: bind
+  dbeaver_data:
+    name: dbeaver_data
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/srandria/data/dbeaver
+      o: bind

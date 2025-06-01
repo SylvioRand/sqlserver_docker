@@ -1,6 +1,8 @@
 NAME = sqlserver
 COMPOSE_FILE = srcs/docker-compose.yml
-DATA_DIR = /home/srandria/data/sqlserver_data
+DATA_DIR = /home/srandria/data/sqlserver
+PORTAINER_DIR = /home/srandria/data/portainer
+DBEAVER_DIR = /home/srandria/data/dbeaver
 
 all: init build up
 
@@ -12,6 +14,21 @@ init:
 	else \
 		echo "$(DATA_DIR) already exists"; \
 	fi
+	@if [ ! -d $(PORTAINER_DIR) ]; then \
+		mkdir -p $(PORTAINER_DIR); \
+		chmod 777 $(PORTAINER_DIR); \
+		echo "Created $(PORTAINER_DIR) with correct permissions"; \
+	else \
+		echo "$(PORTAINER_DIR) already exists"; \
+	fi
+	@if [ ! -d $(DBEAVER_DIR) ]; then \
+		mkdir -p $(DBEAVER_DIR); \
+		chmod 777 $(DBEAVER_DIR); \
+		echo "Created $(DBEAVER_DIR) with correct permissions"; \
+	else \
+		echo "$(DBEAVER_DIR) already exists"; \
+	fi
+
 
 build:
 	@docker compose -f $(COMPOSE_FILE) build --no-cache
